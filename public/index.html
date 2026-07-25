@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="AI Fitness Coach — personalised workout splits, 7-day meal plans and progress tracking." />
+  <meta name="theme-color" content="#0f1720" />
+  <title>AI Fitness Coach</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%233ddc84'/><text y='68' x='50' font-size='52' text-anchor='middle' font-family='sans-serif' font-weight='bold' fill='%2304140b'>AI</text></svg>" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ TOP BAR (main app only) ============ -->
+  <header class="topbar" id="topbar" hidden>
+    <div class="brand">
+      <div class="logo">AI</div>
+      <div class="brand-text">
+        <h1 id="topbarTitle">Fitness Coach</h1>
+        <span class="sub" id="topbarSub"></span>
+      </div>
+    </div>
+    <button class="icon-btn" id="btnSettings" type="button">Settings</button>
+  </header>
+
+  <main id="main">
+
+    <!-- ============ WELCOME ============ -->
+    <section class="screen is-active" id="screen-welcome">
+      <div class="hero">
+        <div class="logo-big">AI</div>
+        <h2>AI Fitness Coach</h2>
+        <p class="lead">
+          Personalised workout splits, 7-day meal plans and progress tracking,
+          built around your goals. No spreadsheets, no guesswork.
+        </p>
+      </div>
+      <div class="feature-list">
+        <div class="feature"><span class="feature-dot"></span>Workout plans for 5 training splits, 3&ndash;6 days a week</div>
+        <div class="feature"><span class="feature-dot"></span>Calorie and macro targets calculated from your body and goal</div>
+        <div class="feature"><span class="feature-dot"></span>7-day meal plans for vegetarian, non-vegetarian or vegan</div>
+        <div class="feature"><span class="feature-dot"></span>Exercise guide with form tips and smart substitutions</div>
+      </div>
+      <button class="btn" id="btnStart" type="button">Get Started</button>
+      <button class="btn btn-secondary" id="btnSkipOnboarding" type="button">Skip &mdash; just build me a workout plan</button>
+    </section>
+
+    <!-- ============ ONBOARDING: PERSONAL DETAILS ============ -->
+    <section class="screen" id="screen-personal">
+      <div class="step-dots"><span class="on"></span><span></span><span></span></div>
+      <h2>Your details</h2>
+      <p class="lead">Used to calculate your BMI and daily calorie needs. Gender is optional.</p>
+
+      <form class="card" id="formPersonal" novalidate>
+        <div class="row">
+          <div class="field">
+            <label class="field-label" for="inHeight">Height (cm)</label>
+            <input type="number" id="inHeight" min="120" max="230" step="1" placeholder="175" required />
+          </div>
+          <div class="field">
+            <label class="field-label" for="inWeight">Weight (kg)</label>
+            <input type="number" id="inWeight" min="35" max="250" step="0.1" placeholder="75" required />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label class="field-label" for="inAge">Age</label>
+            <input type="number" id="inAge" min="14" max="100" step="1" placeholder="24" required />
+          </div>
+          <div class="field">
+            <label class="field-label" for="inGender">Gender (optional)</label>
+            <select id="inGender">
+              <option value="">Prefer not to say</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="inActivity">Daily activity level</label>
+          <select id="inActivity"></select>
+          <p class="hint" id="activityHint"></p>
+        </div>
+        <p class="form-error" id="personalError" hidden></p>
+      </form>
+
+      <button class="btn" id="btnPersonalNext" type="button">Continue</button>
+      <button class="btn btn-ghost" data-back="screen-welcome" type="button">Back</button>
+    </section>
+
+    <!-- ============ ONBOARDING: GOAL ============ -->
+    <section class="screen" id="screen-goal">
+      <div class="step-dots"><span class="on"></span><span class="on"></span><span></span></div>
+      <h2>What's your goal?</h2>
+      <p class="lead">This sets your target calorie intake and protein requirement.</p>
+      <div class="stack" id="goalOptions"></div>
+      <p class="form-error" id="goalError" hidden></p>
+      <button class="btn" id="btnGoalNext" type="button">Continue</button>
+      <button class="btn btn-ghost" data-back="screen-personal" type="button">Back</button>
+    </section>
+
+    <!-- ============ ONBOARDING: RESULTS ============ -->
+    <section class="screen" id="screen-results">
+      <div class="step-dots"><span class="on"></span><span class="on"></span><span class="on"></span></div>
+      <h2>Your numbers</h2>
+      <p class="lead">Calculated from your details using the Mifflin-St Jeor equation.</p>
+
+      <div class="card">
+        <div class="stat-grid-3">
+          <div class="stat"><div class="stat-val" id="resBmi">&mdash;</div><div class="stat-lab">BMI</div></div>
+          <div class="stat"><div class="stat-val" id="resTdee">&mdash;</div><div class="stat-lab">Maintenance kcal</div></div>
+          <div class="stat"><div class="stat-val" id="resTarget">&mdash;</div><div class="stat-lab">Target kcal</div></div>
+        </div>
+        <p class="note" id="resNote"></p>
+      </div>
+
+      <div class="card">
+        <h3>Daily macro targets</h3>
+        <div class="macro-bar" id="macroBar"></div>
+        <div class="macro-legend">
+          <span><i class="sw sw-p"></i>Protein</span>
+          <span><i class="sw sw-c"></i>Carbs</span>
+          <span><i class="sw sw-f"></i>Fat</span>
+        </div>
+        <div class="stat-grid-3">
+          <div class="stat"><div class="stat-val" id="resProtein">&mdash;</div><div class="stat-lab">Protein</div></div>
+          <div class="stat"><div class="stat-val" id="resCarbs">&mdash;</div><div class="stat-lab">Carbs</div></div>
+          <div class="stat"><div class="stat-val" id="resFat">&mdash;</div><div class="stat-lab">Fat</div></div>
+        </div>
+      </div>
+
+      <button class="btn" id="btnResultsNext" type="button">Continue to Workout Setup</button>
+      <button class="btn btn-ghost" data-back="screen-goal" type="button">Back</button>
+    </section>
+
+    <!-- ============ WORKOUT SETUP: SPLIT ============ -->
+    <section class="screen" id="screen-split">
+      <h2>Choose your workout split</h2>
+      <p class="lead">Pick the training style that fits your schedule and experience.</p>
+      <div class="stack" id="splitOptions"></div>
+      <p class="form-error" id="splitError" hidden></p>
+      <button class="btn" id="btnSplitNext" type="button">Continue</button>
+    </section>
+
+    <!-- ============ WORKOUT SETUP: DAYS ============ -->
+    <section class="screen" id="screen-days">
+      <h2>How many days a week?</h2>
+      <p class="lead">Your weekly schedule is built automatically around this.</p>
+      <div class="grid-2" id="daysOptions"></div>
+      <div class="card" id="schedulePreview" hidden>
+        <h3>Your week</h3>
+        <div id="schedulePreviewBody"></div>
+      </div>
+      <p class="form-error" id="daysError" hidden></p>
+      <button class="btn" id="btnDaysNext" type="button">Continue</button>
+      <button class="btn btn-ghost" data-back="screen-split" type="button">Back</button>
+    </section>
+
+    <!-- ============ DIET SETUP ============ -->
+    <section class="screen" id="screen-diet-setup">
+      <h2>Preferred diet</h2>
+      <p class="lead">Your 7-day meal plan is matched to your calorie and protein targets.</p>
+      <div class="stack" id="dietOptions"></div>
+      <p class="form-error" id="dietError" hidden></p>
+      <button class="btn" id="btnDietNext" type="button">Build My Plan</button>
+      <button class="btn btn-ghost" data-back="screen-days" type="button">Back</button>
+    </section>
+
+    <!-- ============ MAIN: TODAY ============ -->
+    <section class="screen" id="screen-today"></section>
+
+    <!-- ============ MAIN: WORKOUT ============ -->
+    <section class="screen" id="screen-workout">
+      <div class="screen-head">
+        <div>
+          <h2>Weekly Schedule</h2>
+          <p class="sub-label" id="workoutSplitLabel"></p>
+        </div>
+        <button class="btn btn-small btn-secondary" id="btnChangeSplit" type="button">Change Split</button>
+      </div>
+      <div class="day-tabs" id="workoutDayTabs"></div>
+      <div id="workoutDayBody"></div>
+    </section>
+
+    <!-- ============ MAIN: DIET ============ -->
+    <section class="screen" id="screen-diet">
+      <div class="screen-head">
+        <div>
+          <h2>7-Day Meal Plan</h2>
+          <p class="sub-label" id="dietTypeLabel"></p>
+        </div>
+        <button class="btn btn-small btn-secondary" id="btnRegenDiet" type="button">Regenerate</button>
+      </div>
+      <div class="day-tabs" id="dietDayTabs"></div>
+      <div id="dietDayBody"></div>
+    </section>
+
+    <!-- ============ MAIN: PROGRESS ============ -->
+    <section class="screen" id="screen-progress">
+      <h2>Weekly Progress</h2>
+      <p class="lead">Log your weight each week to track how you're trending.</p>
+
+      <form class="card" id="formProgress" novalidate>
+        <div class="row">
+          <div class="field">
+            <label class="field-label" for="inProgWeight">Current weight (kg)</label>
+            <input type="number" id="inProgWeight" min="35" max="250" step="0.1" placeholder="74.2" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="inProgPhoto">Progress photo note (optional)</label>
+            <input type="text" id="inProgPhoto" maxlength="60" placeholder="e.g. week-4-front.jpg" />
+          </div>
+        </div>
+        <p class="form-error" id="progressError" hidden></p>
+        <button class="btn" id="btnLogProgress" type="button">Log This Week</button>
+      </form>
+
+      <div id="progressSummary"></div>
+
+      <h3>History</h3>
+      <div id="progressHistory"></div>
+    </section>
+
+    <!-- ============ MAIN: EXERCISE LIBRARY ============ -->
+    <section class="screen" id="screen-library">
+      <h2>Exercise Guide</h2>
+      <p class="lead">Every exercise with target muscles, form tips and common mistakes.</p>
+      <div class="field">
+        <input type="search" id="librarySearch" placeholder="Search exercises or muscles..." />
+      </div>
+      <div class="chip-row" id="libraryFilters"></div>
+      <div id="libraryList"></div>
+    </section>
+
+  </main>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="tabbar" id="tabbar" hidden>
+    <button type="button" data-tab="screen-today"><span class="tab-dot"></span>Today</button>
+    <button type="button" data-tab="screen-workout"><span class="tab-dot"></span>Workout</button>
+    <button type="button" data-tab="screen-diet"><span class="tab-dot"></span>Diet</button>
+    <button type="button" data-tab="screen-progress"><span class="tab-dot"></span>Progress</button>
+    <button type="button" data-tab="screen-library"><span class="tab-dot"></span>Guide</button>
+  </nav>
+
+  <!-- ============ MODALS ============ -->
+  <div class="modal-overlay" id="exerciseModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="exModalName">
+      <button class="close-x" data-close-modal="exerciseModal" type="button" aria-label="Close">&times;</button>
+      <span class="tag" id="exModalMuscle"></span>
+      <h2 id="exModalName"></h2>
+      <p class="modal-desc" id="exModalDesc"></p>
+      <div class="pill-row" id="exModalMeta"></div>
+      <h4>Correct form</h4>
+      <ul id="exModalTips"></ul>
+      <h4>Common mistakes</h4>
+      <ul class="list-warn" id="exModalMistakes"></ul>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="settingsModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <button class="close-x" data-close-modal="settingsModal" type="button" aria-label="Close">&times;</button>
+      <h2 id="settingsTitle">Settings</h2>
+      <p class="modal-desc">Your data is stored only in this browser on this device.</p>
+      <div id="settingsSummary"></div>
+      <button class="btn btn-secondary" id="btnRedoOnboarding" type="button">Redo Onboarding</button>
+      <button class="btn btn-secondary" id="btnChangeDiet" type="button">Change Diet Preference</button>
+      <button class="btn btn-danger" id="btnResetAll" type="button">Reset All Data</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
