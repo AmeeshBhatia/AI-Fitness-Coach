@@ -1,0 +1,22 @@
+{
+  "name": "ai-fitness-coach",
+  "version": "1.0.0",
+  "description": "Personalised fitness app that generates workout splits, 7-day meal plans and progress tracking from a user's goals. Zero dependencies.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests/run-tests.js"
+  },
+  "keywords": [
+    "fitness",
+    "workout-generator",
+    "meal-planner",
+    "macros"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}

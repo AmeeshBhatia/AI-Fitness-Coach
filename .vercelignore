@@ -1,0 +1,5 @@
+# Only public/ is served in production. These are dev-only.
+server.js
+tests/
+.vscode/
+*.log
