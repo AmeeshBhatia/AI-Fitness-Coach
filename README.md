@@ -183,3 +183,11 @@ only module that touches persistence.
 
 Any browser with ES module support: Chrome/Edge 61+, Firefox 60+, Safari 11+.
 The layout is mobile-first and centred on desktop.
+
+---
+
+## Live demo
+
+https://ai-fitness-coach-lemon.vercel.app
+
+Deployed on Vercel from the `main` branch. Every push redeploys automatically.
