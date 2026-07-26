@@ -9,7 +9,9 @@
 
 import { EXERCISES, RELATED_MUSCLES, MUSCLE_LABELS } from "../public/js/data/exercises.js";
 import { DAY_TYPES, SPLITS, WEEKDAYS, TRAINING_DAY_OPTIONS, restSeconds } from "../public/js/data/workouts.js";
-import { MEALS, SLOTS, SLOT_LABELS, DIET_TYPES } from "../public/js/data/meals.js";
+import {
+  MEALS, SLOTS, SLOT_LABELS, DIET_TYPES, NONVEG_DISHES, nonVegSlotForDay
+} from "../public/js/data/meals.js";
 import { GOALS, ACTIVITY_LEVELS, getGoal, getActivityLevel } from "../public/js/data/goals.js";
 
 import {
@@ -203,33 +205,68 @@ test("every meal has plausible macros that roughly match its calories", () => {
   });
 });
 
-test("vegan meals contain no obvious animal products", () => {
-  const banned = ["chicken", "beef", "salmon", "tuna", "cod", "turkey", "egg", "paneer",
-    "yogurt", "cheese", "whey", "halloumi", "cottage"];
-  Object.values(MEALS.vegan).forEach((options) => {
+// Word-boundary matching matters here: "veggie" contains the letters "egg",
+// and "eggplant" isn't an egg, so a naive substring test gives false alarms.
+// Note: "keema" and "biryani" are deliberately NOT here — "Soya Keema" is
+// soya mince and biryani can be vegetarian. The animal itself is the signal.
+const MEAT_WORDS = /\b(chicken|beef|mutton|lamb|pork|salmon|tuna|cod|fish|turkey|sausage|steak|prawn)\b/i;
+const EGG_WORDS = /\b(egg|eggs|omelette|omelet|bhurji anda|anda)\b/i;
+const DAIRY_WORDS = /\b(paneer|curd|yogurt|yoghurt|cheese|milk|buttermilk|ghee|butter|kadhi|whey|lassi)\b/i;
+
+test("vegetarian meals contain no meat, fish or egg", () => {
+  Object.entries(MEALS.veg).forEach(([slot, options]) => {
     options.forEach((meal) => {
-      const lower = meal.name.toLowerCase();
-      banned.forEach((word) => {
-        // "soy yogurt" and "vegan protein" are acceptable
-        if (lower.includes(word)) {
-          const okContext = /soy yogurt|vegan|pea protein/.test(lower);
-          assert(okContext, `vegan meal "${meal.name}" contains '${word}'`);
-        }
-      });
+      assert(!MEAT_WORDS.test(meal.name), `veg ${slot} "${meal.name}" contains meat/fish`);
+      assert(!EGG_WORDS.test(meal.name), `veg ${slot} "${meal.name}" contains egg`);
+      assert(!meal.nonveg, `veg ${slot} "${meal.name}" is flagged non-veg`);
     });
   });
 });
 
-test("vegetarian meals contain no meat or fish", () => {
-  const banned = ["chicken", "beef", "salmon", "tuna", "cod", "turkey", "sausage", "steak"];
-  Object.values(MEALS.veg).forEach((options) => {
+test("vegan meals contain no meat, egg or dairy", () => {
+  Object.entries(MEALS.vegan).forEach(([slot, options]) => {
     options.forEach((meal) => {
-      const lower = meal.name.toLowerCase();
-      banned.forEach((word) => {
-        assert(!lower.includes(word), `vegetarian meal "${meal.name}" contains '${word}'`);
-      });
+      assert(!MEAT_WORDS.test(meal.name), `vegan ${slot} "${meal.name}" contains meat/fish`);
+      assert(!EGG_WORDS.test(meal.name), `vegan ${slot} "${meal.name}" contains egg`);
+      // "Soya Milk" and "Peanut Butter" are plant-based, so allow those
+      const name = meal.name.toLowerCase();
+      const plantException = /soya milk|soy milk|peanut butter|almond|coconut milk/.test(name);
+      assert(
+        !DAIRY_WORDS.test(meal.name) || plantException,
+        `vegan ${slot} "${meal.name}" contains dairy`
+      );
     });
   });
+});
+
+test("every non-veg dish is flagged and sits in lunch or dinner only", () => {
+  const slots = Object.keys(NONVEG_DISHES);
+  assertEqual(slots.sort().join(","), "dinner,lunch", "non-veg slots");
+
+  slots.forEach((slot) => {
+    const options = NONVEG_DISHES[slot];
+    assert(options.length >= 4, `NONVEG_DISHES.${slot} needs at least 4 options`);
+    options.forEach((dish) => {
+      assert(dish.nonveg === true, `"${dish.name}" is missing the nonveg flag`);
+      assert(
+        MEAT_WORDS.test(dish.name) || EGG_WORDS.test(dish.name),
+        `"${dish.name}" is in the non-veg list but reads vegetarian`
+      );
+      assertBetween(dish.kcal, 300, 800, `${dish.name} calories`);
+      const fromMacros = dish.p * 4 + dish.c * 4 + dish.f * 9;
+      const drift = Math.abs(fromMacros - dish.kcal) / dish.kcal;
+      assert(drift < 0.2, `${dish.name}: macros imply ${fromMacros} kcal vs stated ${dish.kcal}`);
+    });
+  });
+});
+
+test("the non-veg slot alternates across the week", () => {
+  const week = [0, 1, 2, 3, 4, 5, 6].map(nonVegSlotForDay);
+  week.forEach((slot) => assert(slot === "lunch" || slot === "dinner", `bad slot ${slot}`));
+  assert(week.includes("lunch") && week.includes("dinner"), "should use both lunch and dinner");
+  for (let i = 0; i < week.length - 1; i++) {
+    assert(week[i] !== week[i + 1], `days ${i} and ${i + 1} both use ${week[i]}`);
+  }
 });
 
 test("every goal and activity level is well formed", () => {
@@ -522,6 +559,71 @@ test("generates 7 days with the four core meals for every diet type", () => {
         assert(SLOT_LABELS[m.slot], `${id} day ${day} slot '${m.slot}' has no label`);
         assert(m.name && m.name.length > 3, `${id} day ${day} meal missing name`);
         assert(m.kcal > 0 && m.p >= 0 && m.c >= 0 && m.f >= 0, `${id} day ${day} bad macros`);
+      });
+    }
+  });
+});
+
+test("non-veg plans contain exactly ONE non-veg meal per day", () => {
+  [1600, 2200, 2800, 3200].forEach((target) => {
+    [0, 1, 2, 3].forEach((offset) => {
+      const plan = generateDietPlan("nonveg", target, offset);
+      for (let day = 0; day < 7; day++) {
+        const meals = plan[day].meals;
+        const flagged = meals.filter((m) => m.nonveg);
+
+        assertEqual(
+          flagged.length, 1,
+          `nonveg ${target}kcal offset${offset} day${day}: ${flagged.length} non-veg meals ` +
+          `(${meals.map((m) => m.name).join(" | ")})`
+        );
+
+        // and it must sit in the expected slot
+        assertEqual(flagged[0].slot, nonVegSlotForDay(day), `day${day} non-veg slot`);
+
+        // every other meal must read vegetarian
+        meals.filter((m) => !m.nonveg).forEach((m) => {
+          assert(!MEAT_WORDS.test(m.name), `day${day} veg meal "${m.name}" contains meat`);
+          assert(!EGG_WORDS.test(m.name), `day${day} veg meal "${m.name}" contains egg`);
+        });
+      }
+    });
+  });
+});
+
+test("top-up snacks never add a second non-veg meal", () => {
+  // High targets trigger extra snacks; those come from the veg snack pool
+  const plan = generateDietPlan("nonveg", 3600, 0);
+  for (let day = 0; day < 7; day++) {
+    const extras = plan[day].meals.filter((m) => m.slot === "extra");
+    extras.forEach((m) => assert(!m.nonveg, `top-up "${m.name}" is non-veg`));
+    assertEqual(plan[day].meals.filter((m) => m.nonveg).length, 1, `day${day} non-veg count`);
+  }
+});
+
+test("vegetarian and vegan plans never contain a non-veg meal", () => {
+  ["veg", "vegan"].forEach((type) => {
+    [1800, 2400, 3200].forEach((target) => {
+      const plan = generateDietPlan(type, target);
+      for (let day = 0; day < 7; day++) {
+        plan[day].meals.forEach((m) => {
+          assert(!m.nonveg, `${type} day${day} "${m.name}" flagged non-veg`);
+          assert(!MEAT_WORDS.test(m.name), `${type} day${day} "${m.name}" contains meat`);
+          assert(!EGG_WORDS.test(m.name), `${type} day${day} "${m.name}" contains egg`);
+        });
+      }
+    });
+  });
+});
+
+test("plans are recognisably Indian and budget-oriented", () => {
+  // Guard against the meal DB drifting back to salmon-and-quinoa territory
+  const staples = /(dal|dahl|rajma|chole|chana|paneer|tofu|soya|roti|rice|poha|upma|idli|sambar|khichdi|paratha|chilla|curd|sprouts|peanut|besan|bhurji|baingan|lauki|kadhi|murmura|jaggery|biryani|tikka|keema)/i;
+  DIET_TYPES.forEach(({ id }) => {
+    const plan = generateDietPlan(id, 2400);
+    for (let day = 0; day < 7; day++) {
+      plan[day].meals.forEach((m) => {
+        assert(staples.test(m.name), `${id} day${day} "${m.name}" doesn't look like an Indian staple`);
       });
     }
   });
