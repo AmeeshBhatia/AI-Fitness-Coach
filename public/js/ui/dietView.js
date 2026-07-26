@@ -74,6 +74,7 @@ function renderDayBody() {
   const meals = dayData.meals.map((m) => `
     <div class="card tight meal-card">
       <span class="pill">${esc(SLOT_LABELS[m.slot])}</span>
+      ${m.nonveg ? `<span class="pill pill-nonveg">Non-veg</span>` : ""}
       <h4>${esc(m.name)}</h4>
       <div class="meal-macros">
         <span><b>${m.kcal}</b> kcal</span>
