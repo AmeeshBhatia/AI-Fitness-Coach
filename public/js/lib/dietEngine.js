@@ -5,7 +5,7 @@
  * day lands close to the user's calorie target. Pure logic, no DOM access.
  */
 
-import { MEALS, SLOTS } from "../data/meals.js";
+import { MEALS, SLOTS, NONVEG_DISHES, nonVegSlotForDay } from "../data/meals.js";
 
 const DEFAULT_TARGET_CALORIES = 2200;
 
@@ -38,8 +38,24 @@ function scaleMeal(meal, scale) {
     kcal: Math.round(meal.kcal * scale),
     p: Math.round(meal.p * scale),
     c: Math.round(meal.c * scale),
-    f: Math.round(meal.f * scale)
+    f: Math.round(meal.f * scale),
+    // Preserve the flag so the UI can badge the day's non-veg meal
+    ...(meal.nonveg ? { nonveg: true } : {})
   };
+}
+
+/**
+ * Swap exactly one meal of the day for a non-veg dish. Mutates `meals`.
+ * The slot alternates between dinner and lunch across the week, so a
+ * non-veg plan is a vegetarian day plus a single non-veg meal.
+ */
+function applyNonVegMeal(meals, day, offset) {
+  const slot = nonVegSlotForDay(day);
+  const options = NONVEG_DISHES[slot];
+  const dish = options[(day + offset) % options.length];
+
+  const index = meals.findIndex((m) => m.slot === slot);
+  if (index !== -1) meals[index] = { ...dish, slot };
 }
 
 function sumTotals(meals) {
@@ -64,6 +80,9 @@ export function generateDietPlan(dietType, targetCalories, offset = 0) {
 
   for (let day = 0; day < 7; day++) {
     const base = SLOTS.map((slot) => ({ slot, ...pickMeal(dietType, slot, day, offset) }));
+
+    // The non-veg plan is a vegetarian day with exactly one meal swapped out
+    if (dietType === "nonveg") applyNonVegMeal(base, day, offset);
 
     const baseCalories = base.reduce((s, m) => s + m.kcal, 0);
     const rawScale = target / baseCalories;
