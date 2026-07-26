@@ -1,12 +1,18 @@
 /**
- * MEAL DATABASE
+ * MEAL DATABASE — budget-friendly Indian meals
  *
- * Macros are per standard serving of the base recipe. The diet engine
- * scales servings up or down to hit the user's calorie target, so these
- * are reference values rather than fixed portions.
+ * Macros are per standard serving of the base recipe. The diet engine scales
+ * servings up or down to hit the user's calorie target, so these are reference
+ * values rather than fixed portions.
  *
- * Nutrition figures are approximations consistent with USDA FoodData
- * Central averages for the constituent ingredients.
+ * Diet rules encoded here:
+ *   veg     dairy allowed (paneer, curd, buttermilk), NO egg, no meat or fish
+ *   vegan   no animal products at all (no dairy, no egg)
+ *   nonveg  a vegetarian day with exactly ONE non-veg meal, rotating between
+ *           dinner and lunch. Egg counts as non-veg, so egg dishes live here.
+ *
+ * Protein on a budget comes mainly from dal, chana, rajma, soya chunks,
+ * paneer, tofu, curd, peanuts and sprouts.
  */
 
 export const SLOTS = ["breakfast", "lunch", "snack", "dinner"];
@@ -22,102 +28,125 @@ export const SLOT_LABELS = {
 };
 
 export const DIET_TYPES = [
-  { id: "veg", label: "Vegetarian", blurb: "Includes dairy and eggs" },
-  { id: "nonveg", label: "Non-Vegetarian", blurb: "Includes meat, fish and eggs" },
-  { id: "vegan", label: "Vegan", blurb: "No animal products at all" }
+  { id: "veg", label: "Vegetarian", blurb: "Dairy included, no egg" },
+  { id: "nonveg", label: "Non-Vegetarian", blurb: "One non-veg meal a day, rest vegetarian" },
+  { id: "vegan", label: "Vegan", blurb: "No dairy, no egg, no animal products" }
 ];
 
-export const MEALS = {
-  veg: {
-    breakfast: [
-      { name: "Greek Yogurt Parfait with Oats & Berries", kcal: 320, p: 20, c: 45, f: 6 },
-      { name: "Paneer Bhurji with Whole Wheat Toast", kcal: 400, p: 24, c: 38, f: 16 },
-      { name: "Vegetable & Cheese Omelette with Toast", kcal: 380, p: 26, c: 30, f: 17 },
-      { name: "Masala Oats with Whey Protein & Peanut Butter", kcal: 420, p: 30, c: 44, f: 14 },
-      { name: "Cottage Cheese Pancakes with Honey", kcal: 390, p: 28, c: 40, f: 12 }
-    ],
-    lunch: [
-      { name: "Chickpea & Vegetable Curry with Brown Rice", kcal: 520, p: 22, c: 70, f: 14 },
-      { name: "Paneer Tikka with Quinoa Salad", kcal: 560, p: 32, c: 48, f: 24 },
-      { name: "Lentil Dal with Roti & Mixed Vegetables", kcal: 480, p: 24, c: 65, f: 12 },
-      { name: "Rajma Curry with Steamed Rice & Salad", kcal: 540, p: 22, c: 78, f: 12 },
-      { name: "Halloumi & Roasted Vegetable Grain Bowl", kcal: 580, p: 28, c: 52, f: 26 }
-    ],
-    snack: [
-      { name: "Greek Yogurt with Almonds", kcal: 220, p: 16, c: 14, f: 11 },
-      { name: "Hummus with Carrot & Cucumber Sticks", kcal: 200, p: 8, c: 22, f: 9 },
-      { name: "Whey Protein Shake with Banana", kcal: 260, p: 25, c: 28, f: 4 },
-      { name: "Roasted Chana with Green Tea", kcal: 210, p: 12, c: 26, f: 6 },
-      { name: "Cottage Cheese with Pineapple", kcal: 190, p: 20, c: 16, f: 5 }
-    ],
-    dinner: [
-      { name: "Tofu Stir-Fry with Brown Rice", kcal: 500, p: 28, c: 55, f: 15 },
-      { name: "Paneer & Vegetable Curry with Roti", kcal: 540, p: 30, c: 50, f: 18 },
-      { name: "Cottage Cheese Salad Bowl with Quinoa", kcal: 460, p: 32, c: 40, f: 16 },
-      { name: "Vegetable & Lentil Soup with Wholegrain Bread", kcal: 440, p: 22, c: 58, f: 12 },
-      { name: "Egg Curry with Steamed Rice", kcal: 520, p: 28, c: 52, f: 20 }
-    ]
-  },
-
-  nonveg: {
-    breakfast: [
-      { name: "Scrambled Eggs with Whole Wheat Toast & Avocado", kcal: 420, p: 28, c: 32, f: 20 },
-      { name: "Greek Yogurt with Chicken Sausage & Berries", kcal: 380, p: 30, c: 30, f: 14 },
-      { name: "Oats with Whey Protein & Peanut Butter", kcal: 400, p: 30, c: 40, f: 14 },
-      { name: "Egg White Omelette with Smoked Salmon", kcal: 360, p: 34, c: 20, f: 16 },
-      { name: "Turkey & Egg Breakfast Wrap", kcal: 430, p: 32, c: 38, f: 17 }
-    ],
-    lunch: [
-      { name: "Grilled Chicken Breast with Brown Rice & Broccoli", kcal: 550, p: 45, c: 50, f: 14 },
-      { name: "Salmon Fillet with Quinoa & Asparagus", kcal: 580, p: 40, c: 42, f: 24 },
-      { name: "Turkey Mince Stir-Fry with Vegetables & Rice", kcal: 520, p: 42, c: 48, f: 16 },
-      { name: "Chicken Tikka with Roti & Cucumber Raita", kcal: 560, p: 44, c: 46, f: 20 },
-      { name: "Tuna & Chickpea Salad with Wholegrain Pitta", kcal: 490, p: 38, c: 48, f: 14 }
-    ],
-    snack: [
-      { name: "Boiled Eggs with Mixed Nuts", kcal: 260, p: 18, c: 6, f: 18 },
-      { name: "Chicken Breast Strips with Salad", kcal: 220, p: 28, c: 6, f: 9 },
-      { name: "Whey Protein Shake with Banana", kcal: 260, p: 25, c: 28, f: 4 },
-      { name: "Greek Yogurt with Walnuts & Honey", kcal: 240, p: 18, c: 20, f: 10 },
-      { name: "Tuna on Wholegrain Crackers", kcal: 230, p: 24, c: 18, f: 7 }
-    ],
-    dinner: [
-      { name: "Grilled Salmon with Sweet Potato & Greens", kcal: 560, p: 38, c: 45, f: 22 },
-      { name: "Chicken Stir-Fry with Brown Rice", kcal: 540, p: 42, c: 50, f: 15 },
-      { name: "Lean Beef Steak with Roasted Vegetables", kcal: 580, p: 45, c: 30, f: 28 },
-      { name: "Baked Cod with Quinoa & Green Beans", kcal: 470, p: 40, c: 42, f: 12 },
-      { name: "Chicken & Lentil Curry with Rice", kcal: 550, p: 42, c: 54, f: 16 }
-    ]
-  },
-
-  vegan: {
-    breakfast: [
-      { name: "Oats with Almond Milk, Chia Seeds & Berries", kcal: 350, p: 12, c: 50, f: 10 },
-      { name: "Tofu Scramble with Whole Wheat Toast", kcal: 380, p: 22, c: 34, f: 16 },
-      { name: "Pea Protein Smoothie with Banana & Oat Milk", kcal: 400, p: 28, c: 40, f: 12 },
-      { name: "Peanut Butter & Banana on Wholegrain Toast", kcal: 420, p: 16, c: 52, f: 18 },
-      { name: "Soy Yogurt with Granola & Mixed Seeds", kcal: 360, p: 18, c: 44, f: 13 }
-    ],
-    lunch: [
-      { name: "Chickpea & Vegetable Curry with Brown Rice", kcal: 520, p: 20, c: 72, f: 12 },
-      { name: "Tofu & Quinoa Buddha Bowl", kcal: 540, p: 26, c: 55, f: 18 },
-      { name: "Black Bean & Sweet Potato Bowl with Rice", kcal: 500, p: 20, c: 78, f: 10 },
-      { name: "Lentil Dal with Roti & Sauteed Spinach", kcal: 480, p: 24, c: 66, f: 11 },
-      { name: "Tempeh Wrap with Hummus & Salad", kcal: 530, p: 28, c: 54, f: 19 }
-    ],
-    snack: [
-      { name: "Hummus with Vegetable Sticks", kcal: 200, p: 8, c: 22, f: 9 },
-      { name: "Roasted Chickpeas with Mixed Nuts", kcal: 230, p: 10, c: 20, f: 12 },
-      { name: "Vegan Protein Shake with Banana", kcal: 240, p: 22, c: 26, f: 4 },
-      { name: "Edamame with Sea Salt", kcal: 190, p: 17, c: 15, f: 8 },
-      { name: "Almond Butter on Rice Cakes", kcal: 220, p: 8, c: 24, f: 12 }
-    ],
-    dinner: [
-      { name: "Tofu Stir-Fry with Brown Rice & Vegetables", kcal: 500, p: 24, c: 58, f: 14 },
-      { name: "Lentil & Vegetable Curry with Quinoa", kcal: 520, p: 24, c: 62, f: 14 },
-      { name: "Tempeh & Vegetable Stir-Fry with Rice", kcal: 540, p: 28, c: 55, f: 16 },
-      { name: "Chickpea Pasta with Tomato & Basil Sauce", kcal: 510, p: 26, c: 70, f: 11 },
-      { name: "Soy Mince Chilli with Brown Rice", kcal: 530, p: 30, c: 64, f: 13 }
-    ]
-  }
+/* ============================================================
+   VEGETARIAN — dairy yes, egg no
+   ============================================================ */
+const VEG_MEALS = {
+  breakfast: [
+    { name: "Poha with Peanuts & Sprouts", kcal: 350, p: 12, c: 52, f: 10 },
+    { name: "Paneer Paratha with Curd", kcal: 450, p: 22, c: 48, f: 20 },
+    { name: "Moong Dal Chilla with Green Chutney", kcal: 330, p: 20, c: 40, f: 10 },
+    { name: "Vegetable Upma with Peanuts", kcal: 340, p: 10, c: 50, f: 11 },
+    { name: "Idli with Sambar", kcal: 320, p: 12, c: 55, f: 6 },
+    { name: "Soya Granule Bhurji with Roti", kcal: 400, p: 28, c: 42, f: 12 },
+    { name: "Besan Chilla with Curd", kcal: 360, p: 18, c: 42, f: 13 }
+  ],
+  lunch: [
+    { name: "Rajma Curry with Rice & Salad", kcal: 540, p: 22, c: 80, f: 12 },
+    { name: "Paneer Bhurji with 2 Roti", kcal: 520, p: 28, c: 48, f: 22 },
+    { name: "Chole with Jeera Rice", kcal: 520, p: 20, c: 78, f: 12 },
+    { name: "Dal Tadka with Rice & Curd", kcal: 500, p: 20, c: 72, f: 12 },
+    { name: "Soya Chunk Curry with 2 Roti", kcal: 510, p: 34, c: 55, f: 14 },
+    { name: "Tofu Bhurji with Paratha", kcal: 530, p: 26, c: 52, f: 22 },
+    { name: "Kadhi Chawal with Sabzi", kcal: 490, p: 18, c: 70, f: 14 }
+  ],
+  snack: [
+    { name: "Roasted Chana with Masala Chai", kcal: 210, p: 12, c: 26, f: 6 },
+    { name: "Sprouts Chaat with Lemon", kcal: 200, p: 14, c: 24, f: 5 },
+    { name: "Paneer Tikka Cubes", kcal: 240, p: 22, c: 8, f: 14 },
+    { name: "Curd with Roasted Peanuts", kcal: 230, p: 14, c: 16, f: 12 },
+    { name: "Banana with Peanut Butter", kcal: 250, p: 8, c: 32, f: 11 },
+    { name: "Masala Buttermilk with Murmura", kcal: 190, p: 8, c: 28, f: 5 }
+  ],
+  dinner: [
+    { name: "Palak Paneer with Rice", kcal: 520, p: 26, c: 50, f: 22 },
+    { name: "Tofu & Vegetable Stir-Fry with Rice", kcal: 500, p: 26, c: 58, f: 14 },
+    { name: "Mixed Dal Khichdi with Curd", kcal: 480, p: 20, c: 70, f: 11 },
+    { name: "Soya Keema with 2 Roti", kcal: 510, p: 32, c: 52, f: 16 },
+    { name: "Paneer Butter Masala with Roti", kcal: 540, p: 28, c: 48, f: 24 },
+    { name: "Chana Masala with Roti & Salad", kcal: 490, p: 22, c: 68, f: 12 },
+    { name: "Lauki Chana Dal with Rice", kcal: 470, p: 20, c: 68, f: 10 }
+  ]
 };
+
+/* ============================================================
+   VEGAN — no dairy, no egg
+   ============================================================ */
+const VEGAN_MEALS = {
+  breakfast: [
+    { name: "Poha with Peanuts & Sprouts", kcal: 350, p: 12, c: 52, f: 10 },
+    { name: "Moong Dal Chilla with Green Chutney", kcal: 330, p: 20, c: 40, f: 10 },
+    { name: "Vegetable Upma with Peanuts", kcal: 340, p: 10, c: 50, f: 11 },
+    { name: "Idli with Sambar", kcal: 320, p: 12, c: 55, f: 6 },
+    { name: "Soya Granule Bhurji with Roti", kcal: 400, p: 28, c: 42, f: 12 },
+    { name: "Peanut Butter Banana Toast", kcal: 420, p: 16, c: 52, f: 18 }
+  ],
+  lunch: [
+    { name: "Rajma Curry with Rice & Salad", kcal: 540, p: 22, c: 80, f: 12 },
+    { name: "Chole with Jeera Rice", kcal: 520, p: 20, c: 78, f: 12 },
+    { name: "Soya Chunk Curry with 2 Roti", kcal: 510, p: 34, c: 55, f: 14 },
+    { name: "Dal Tadka with Rice", kcal: 490, p: 20, c: 74, f: 10 },
+    { name: "Tofu Bhurji with 2 Roti", kcal: 500, p: 28, c: 48, f: 20 },
+    { name: "Sambar with Rice & Vegetables", kcal: 480, p: 16, c: 76, f: 10 }
+  ],
+  snack: [
+    { name: "Roasted Chana with Green Tea", kcal: 210, p: 12, c: 26, f: 6 },
+    { name: "Sprouts Chaat with Lemon", kcal: 200, p: 14, c: 24, f: 5 },
+    { name: "Banana with Peanut Butter", kcal: 250, p: 8, c: 32, f: 11 },
+    { name: "Roasted Peanuts with Jaggery", kcal: 240, p: 10, c: 22, f: 13 },
+    { name: "Murmura Chivda", kcal: 190, p: 6, c: 30, f: 5 },
+    { name: "Soya Milk with Dates", kcal: 200, p: 8, c: 30, f: 5 }
+  ],
+  dinner: [
+    { name: "Tofu & Vegetable Stir-Fry with Rice", kcal: 500, p: 26, c: 58, f: 14 },
+    { name: "Mixed Dal Khichdi", kcal: 470, p: 18, c: 72, f: 10 },
+    { name: "Soya Keema with 2 Roti", kcal: 510, p: 32, c: 52, f: 16 },
+    { name: "Chana Masala with Roti", kcal: 490, p: 22, c: 68, f: 12 },
+    { name: "Baingan Bharta with 2 Roti", kcal: 450, p: 14, c: 60, f: 16 },
+    { name: "Vegetable Sambar with Rice", kcal: 480, p: 16, c: 76, f: 10 }
+  ]
+};
+
+/* ============================================================
+   MEALS — the non-veg plan starts from the vegetarian day, then the diet
+   engine swaps exactly one slot for a dish from NONVEG_DISHES below.
+   ============================================================ */
+export const MEALS = {
+  veg: VEG_MEALS,
+  nonveg: VEG_MEALS,
+  vegan: VEGAN_MEALS
+};
+
+/**
+ * The single non-veg meal of the day. Only lunch and dinner are used, since
+ * that's when a non-veg dish realistically appears in an Indian meal pattern.
+ * Every dish is flagged `nonveg: true` so the UI can badge it.
+ */
+export const NONVEG_DISHES = {
+  lunch: [
+    { name: "Chicken Curry with Rice", kcal: 560, p: 42, c: 55, f: 18, nonveg: true },
+    { name: "Egg Curry with Rice", kcal: 500, p: 26, c: 55, f: 20, nonveg: true },
+    { name: "Fish Curry with Rice", kcal: 520, p: 38, c: 55, f: 16, nonveg: true },
+    { name: "Chicken Biryani (single plate)", kcal: 600, p: 36, c: 70, f: 20, nonveg: true },
+    { name: "Chicken Keema Matar with 2 Roti", kcal: 550, p: 38, c: 45, f: 24, nonveg: true },
+    { name: "Egg Bhurji with 2 Roti", kcal: 480, p: 24, c: 45, f: 22, nonveg: true }
+  ],
+  dinner: [
+    { name: "Grilled Chicken with Roti & Salad", kcal: 520, p: 45, c: 40, f: 18, nonveg: true },
+    { name: "Chicken Tikka with 2 Roti", kcal: 540, p: 44, c: 42, f: 20, nonveg: true },
+    { name: "Fish Fry with Rice & Dal", kcal: 540, p: 36, c: 58, f: 18, nonveg: true },
+    { name: "Boiled Egg Curry with 2 Roti", kcal: 490, p: 26, c: 44, f: 22, nonveg: true },
+    { name: "Chicken Stew with Rice", kcal: 510, p: 38, c: 52, f: 16, nonveg: true },
+    { name: "Masala Omelette with 2 Roti", kcal: 460, p: 24, c: 42, f: 20, nonveg: true }
+  ]
+};
+
+/** Which slot carries the day's non-veg meal. Alternates dinner / lunch. */
+export function nonVegSlotForDay(dayIndex) {
+  return dayIndex % 2 === 0 ? "dinner" : "lunch";
+}
